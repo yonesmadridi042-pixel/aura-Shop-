@@ -1,0 +1,128 @@
+!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>AURA · الإدارة</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--ink:#fff;--mute:#9b9b9b;--line:#2b2b2b;--panel:#171717;--warn:#e0a458;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:300 16px/1.7 'IBM Plex Sans Arabic','Segoe UI',system-ui,sans-serif;padding:0 16px 90px}
+button,input,select,textarea{font:inherit;color:inherit;border-radius:0}button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:1px solid var(--ink);outline-offset:3px}
+.w{max-width:760px;margin:0 auto}
+h2{font-family:Amiri,serif;font-weight:400;font-size:26px;margin:18px 0 14px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--line)}
+.brand{font-family:Amiri,serif;letter-spacing:.4em;direction:ltr;font-size:24px}
+.tabs{display:flex;gap:22px;margin:16px 0;overflow-x:auto}.tab{padding:6px 0;color:var(--mute);border-bottom:1px solid transparent;white-space:nowrap}.tab[aria-pressed=true]{color:var(--ink);border-color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 26px;border:1px solid var(--ink);background:var(--ink);color:var(--bg)}
+.btn.o{background:none;color:var(--ink)}.btn.s{height:38px;padding:0 16px;font-size:14px}.btn.full{width:100%;margin-top:14px}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.th{aspect-ratio:4/5;background:var(--panel);border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;color:var(--mute);font-size:12px}
+.th img{width:100%;height:100%;object-fit:cover}
+.row b{font-weight:400;display:block}small,.nt{color:var(--mute);font-size:14px}.low{color:var(--warn)}
+.fl{margin-bottom:14px}.fl label{display:block;font-size:13px;color:var(--mute);margin-bottom:4px}
+.fl input,.fl select,.fl textarea{width:100%;background:var(--bg);border:1px solid var(--line);padding:10px 12px;min-height:48px}
+.fl input:focus,.fl select:focus,.fl textarea:focus{border-color:var(--ink);outline:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ck{display:flex;gap:10px;align-items:center;margin:6px 0}.ck input{width:20px;height:20px;flex:none}
+.imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.imgs .btn{width:100%;margin-top:6px}.imgs input[type=text]{width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--line);padding:6px 8px;font-size:12px;direction:ltr}
+.back{color:var(--mute);padding:16px 0 0}
+.stk{width:84px;height:42px;background:var(--bg);border:1px solid var(--line);text-align:center}
+.bar{padding:10px 0 14px;border-bottom:1px solid var(--line)}
+.bar .two{align-items:end}
+#m{position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 16px;display:none;z-index:5;max-width:728px;margin:0 auto}
+#m.e{background:var(--panel);color:var(--ink);border:1px solid var(--ink)}
+.login{max-width:380px;margin:14vh auto 0}
+@media(max-width:480px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="w" id="app"></div>
+<div id="m" role="status"></div>
+<p style="text-align:center;color:var(--mute);font-size:12px;direction:ltr;margin:30px 0 0;letter-spacing:.15em">Powered by AURA</p>
+<script>
+const U='https://zppjsjlpvavsowtqhvlb.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcGpzamxwdmF2c293dHFodmxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNTIxOTEsImV4cCI6MjEwNzcyODE5MX0.0cTg-MpcZJ271sVYF46ddiQtvKnKyylvcl0Q9EZlUz4';
+const $=s=>document.querySelector(s);
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let PW='',PR=[],CATS=[],E=null,SL=['','',''],TAB='p',MT;
+try{PW=sessionStorage.getItem('aura-pw')||''}catch(e){}
+function msg(t,err){const m=$('#m');m.textContent=t;m.className=err?'e':'';m.style.display='block';clearTimeout(MT);MT=setTimeout(()=>m.style.display='none',err?6000:2500)}
+const ERR={bad:'كلمة السر خاطئة.',locked:'تم القفل 10 دقائق بعد محاولات خاطئة كثيرة.'};
+async function rpc(fn,args){let r;try{r=await fetch(U+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},body:JSON.stringify(args)})}catch(e){throw new Error('NET')}
+if(!r.ok)throw new Error('تعذّر الاتصال بالخادم');const j=await r.json();if(!j.ok)throw new Error(ERR[j.error]||j.error||'خطأ');return j}
+const imgs=p=>[...String(p.image||'').split('|'),...(p.images||[])].map(x=>String(x||'').trim()).filter(Boolean);
+const price=p=>p.discount_price!=null?`${esc(p.discount_price)} دج <s class="nt">${esc(p.price)}</s>`:`${esc(p.price)} دج`;
+const body=(p,o={})=>({id:p.id,name:p.name,name_en:p.name_en,description:p.description,description_en:p.description_en,price:p.price,discount_price:p.discount_price,quantity:p.quantity,sizes:p.sizes||[],category_id:p.category_id,theme:p.theme,tag:p.tag,is_active:p.is_active,image:imgs(p).join('|'),...o});
+
+function loginView(err){$('#app').innerHTML=`<div class="login"><div class="brand" style="margin-bottom:26px">AURA</div><h2>لوحة الإدارة</h2>
+<div class="fl"><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
+<button class="btn full" onclick="login()">دخول</button><p class="nt" style="margin-top:12px">${esc(err||'')}</p></div>`}
+async function login(){const v=$('#pw').value.trim();if(!v)return;PW=v;try{await load();try{sessionStorage.setItem('aura-pw',PW)}catch(e){}shell()}catch(e){PW='';loginView(e.message)}}
+function logout(){PW='';try{sessionStorage.removeItem('aura-pw')}catch(e){}loginView()}
+async function load(){const j=await rpc('admin_list',{p_pw:PW});PR=j.products;CATS=j.categories}
+async function boot(){try{await load();shell()}catch(e){netView(e.message)}}
+function netView(m){$('#app').innerHTML=`<div class="login"><div class="brand" style="margin-bottom:26px">AURA</div><h2>تعذّر الاتصال</h2><p class="nt">${m==='NET'?'لا يوجد اتصال بالخادم. افتح هذه الصفحة من متصفح الهاتف (Chrome أو Safari) وليس من داخل تطبيق Claude، وتأكد من الإنترنت.':esc(m)}</p><button class="btn full" onclick="boot()">إعادة المحاولة</button></div>`}
+function shell(){$('#app').innerHTML=`<div class="top"><span class="brand">AURA</span></div>
+<div class="tabs">${[['p','المنتجات'],['s','المخزون'],['d','الخصومات'],['x','الديكور']].map(([k,l])=>`<button class="tab" data-t="${k}" onclick="tab('${k}')">${l}</button>`).join('')}</div><div id="v"></div>`;tab(TAB)}
+function tab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t==t));({p:showP,s:showS,d:showD,c:showC,x:showX})[t]()}
+const stock=p=>p.quantity<=0?'<span class="low">نفد</span>':p.quantity<=5?`<span class="low">المخزون ${p.quantity} (منخفض)</span>`:'المخزون '+p.quantity;
+
+/* المنتجات */
+function showP(){$('#v').innerHTML=`<button class="btn full" style="margin:0 0 6px" onclick="edit(0)">+ منتج جديد</button>`+(PR.length?PR.map(p=>`<div class="row"><div class="th">${imgs(p)[0]?`<img src="${esc(imgs(p)[0])}" alt="">`:'بلا صورة'}</div><div><b>${esc(p.name)}</b><small>${price(p)} · ${stock(p)} · ${p.is_active?'ظاهر':'مخفي'}</small></div><div style="display:grid;gap:6px"><button class="btn o s" onclick="edit(${p.id})">تعديل</button><button class="btn o s" style="color:#e57373;border-color:#e57373" onclick="del(${p.id})">حذف</button></div></div>`).join(''):'<p class="nt" style="margin-top:20px">لا توجد منتجات بعد.</p>')}
+const f=(id,l,v,t='text')=>`<div class="fl"><label>${l}</label><input id="${id}" type="${t}" value="${esc(v)}"></div>`;
+const ta=(id,l,v)=>`<div class="fl"><label>${l}</label><textarea id="${id}" rows="2">${esc(v)}</textarea></div>`;
+function slots(){$('#sl').innerHTML=SL.map((u,i)=>`<div><div class="th" style="position:relative">${u?`<img src="${esc(u)}" alt="">`:''}${i==0?'<span style="position:absolute;top:4px;inset-inline-start:4px;background:var(--ink);color:var(--bg);font-size:11px;padding:0 6px">الرئيسية</span>':''}</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn o s" style="flex:1;padding:0;font-size:12px" onclick="mv(${i},-1)"${i==0?' disabled':''}>قبل</button><button class="btn o s" style="flex:1;padding:0;font-size:12px" onclick="mv(${i},1)"${i==SL.length-1?' disabled':''}>بعد</button><button class="btn o s" style="flex:1;padding:0" aria-label="حذف" onclick="SL.splice(${i},1);slots()">✕</button></div></div>`).join('')+`<div><label class="th" style="cursor:pointer;border-style:dashed">+ إضافة صور<input type="file" accept="image/*" multiple hidden onchange="addImgs(this)"></label><input type="text" placeholder="أو الصق رابطاً" onchange="addUrl(this)"></div>`}
+function mv(i,d){const j=i+d;if(j<0||j>=SL.length)return;[SL[i],SL[j]]=[SL[j],SL[i]];slots()}
+function addUrl(el){const v=el.value.trim();el.value='';if(v){SL.push(v);slots()}}
+async function addImgs(inp){const fs=[...inp.files];inp.value='';let bad=0;for(const f of fs){try{SL.push(await shrink(f))}catch(e){bad++}}slots();if(bad)msg('تعذّرت قراءة '+bad+' صورة.',1)}
+function edit(id){E=id?PR.find(x=>x.id==id):{is_active:true,sizes:['S','M','L','XL'],quantity:40,category_id:CATS[0]&&CATS[0].id,theme:'anime',tag:''};const p=E;SL=[...imgs(p)];
+$('#v').innerHTML=`<button class="back" onclick="showP()">← المنتجات</button><h2>${id?esc(p.name):'منتج جديد'}</h2>
+<h3 style="font-weight:400;font-size:15px;margin-bottom:8px">الصور</h3><div class="imgs" id="sl"></div><p class="nt" style="margin:8px 0 18px">أضف عدداً غير محدود من الصور (يمكنك اختيار عدة صور معاً). الأولى هي الرئيسية، وغيّر الترتيب بزرّي «قبل» و«بعد». تُصغَّر الصور تلقائياً.</p>
+${f('n','الاسم بالعربية',p.name)}${f('ne','الاسم بالإنجليزية',p.name_en)}${ta('d','الوصف بالعربية',p.description)}${ta('de','الوصف بالإنجليزية',p.description_en)}
+<div class="two">${f('pr','السعر (دج)',p.price,'number')}${f('dp','سعر بعد التخفيض (اختياري)',p.discount_price,'number')}</div>
+<div class="two">${f('q','المخزون (الكمية)',p.quantity,'number')}${f('sz','المقاسات (افصل بفاصلة)',(p.sizes||[]).join(', '))}</div>
+<div class="fl"><label>نوع الملابس</label><select id="c">${CATS.map(c=>`<option value="${c.id}"${c.id==p.category_id?' selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+<label class="ck"><input type="checkbox" id="ac"${p.is_active?' checked':''}> ظاهر في المتجر</label>
+<button class="btn full" onclick="save()">حفظ المنتج</button>${id?`<button class="btn o full" style="color:#e57373;border-color:#e57373" onclick="del(${p.id})">حذف المنتج</button>`:''}`;slots()}
+async function save(){const g=i=>$('#'+i).value.trim(),b={id:E.id||null,name:g('n'),name_en:g('ne'),description:g('d'),description_en:g('de'),price:g('pr'),discount_price:g('dp'),quantity:g('q'),category_id:g('c'),theme:E.theme||'anime',tag:E.tag||'',sizes:g('sz').split(/[,،]/).map(x=>x.trim()).filter(Boolean),is_active:$('#ac').checked,image:SL.filter(Boolean).join('|')};
+if(!b.name||b.price==='')return msg('أدخل الاسم والسعر.',1);
+try{const j=await rpc('admin_save_product',{p_pw:PW,p:b});await load();edit(j.id);msg('تم الحفظ ✓')}catch(e){msg(e.message,1)}}
+async function del(id){const p=PR.find(x=>x.id==id);if(!p||!confirm('حذف المنتج «'+p.name+'» نهائياً؟'))return;
+try{await rpc('admin_delete_product',{p_pw:PW,p_id:id});await load();showP();msg('تم حذف المنتج ✓')}
+catch(e){if(e.message==='NET')return msg('لا يوجد اتصال.',1);
+try{await rpc('admin_save_product',{p_pw:PW,p:body(p,{is_active:false})});await load();showP();msg('المنتج مرتبط بطلبات سابقة فلم يُحذف، وتم إخفاؤه من المتجر بدلاً من ذلك.',1)}catch(e2){msg(e2.message,1)}}}
+async function shrink(file){const im=await createImageBitmap(file),k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.7)}
+
+/* المخزون */
+function showS(){$('#v').innerHTML='<p class="nt" style="margin-bottom:6px">عدّل الرقم ثم اضغط خارج الخانة ليُحفظ. ينقص المخزون تلقائياً مع كل طلب.</p>'+PR.map(p=>`<div class="row"><div class="th">${imgs(p)[0]?`<img src="${esc(imgs(p)[0])}" alt="">`:''}</div><div><b>${esc(p.name)}</b><small>${stock(p)}</small></div><input class="stk" type="number" min="0" inputmode="numeric" value="${esc(p.quantity)}" aria-label="المخزون" onchange="setQ(${p.id},this)"></div>`).join('')}
+async function setQ(id,el){const p=PR.find(x=>x.id==id),q=Math.max(0,parseInt(el.value,10)||0);try{await rpc('admin_save_product',{p_pw:PW,p:body(p,{quantity:q})});p.quantity=q;msg('تم حفظ المخزون ✓');showS()}catch(e){msg(e.message,1);el.value=p.quantity}}
+
+/* الخصومات */
+function showD(){$('#v').innerHTML=`<div class="bar"><div class="two"><div class="fl" style="margin:0"><label>نسبة الخصم %</label><input id="pct" type="number" min="1" max="90" inputmode="numeric" placeholder="مثال: 20"></div><button class="btn s" style="height:48px" onclick="selAll()">تحديد الكل</button></div>
+<div class="fl" style="margin:10px 0 0"><label>اسم الخصم (بالإنجليزية فقط، اختياري)</label><input id="lb" dir="ltr" maxlength="30" placeholder="Black Friday"></div><div class="two" style="margin-top:10px"><div class="fl" style="margin:0"><label>يبدأ في (اتركه فارغاً = الآن)</label><input id="ds" type="datetime-local"></div><div class="fl" style="margin:0"><label>ينتهي في (فارغ = بلا نهاية)</label><input id="de" type="datetime-local"></div></div><div class="two" style="margin-top:10px"><button class="btn" onclick="disc(1)">تطبيق الخصم</button><button class="btn o" onclick="disc(0)">إلغاء الخصم</button></div></div>`+PR.map(p=>`<label class="row" style="cursor:pointer"><div class="th">${imgs(p)[0]?`<img src="${esc(imgs(p)[0])}" alt="">`:''}</div><div><b>${esc(p.name)}</b><small>${price(p)}${p.discount_price!=null?' · خصم '+Math.round(100-p.discount_price/p.price*100)+'%'+dst(p):''}</small></div><input type="checkbox" class="dk" value="${p.id}" style="width:22px;height:22px"></label>`).join('')}
+const fd=d=>new Date(d).toLocaleString('ar-DZ',{dateStyle:'short',timeStyle:'short'});
+const dst=p=>{const n=Date.now(),a=p.discount_starts_at&&new Date(p.discount_starts_at),b=p.discount_ends_at&&new Date(p.discount_ends_at);return(p.discount_label?' · '+esc(p.discount_label):'')+(a&&a>n?' · يبدأ '+fd(a):b&&b<=n?' · انتهى':' · ساري')+(b&&b>n?' · ينتهي '+fd(b):'')};
+function selAll(){const c=[...document.querySelectorAll('.dk')],all=c.every(x=>x.checked);c.forEach(x=>x.checked=!all)}
+async function disc(apply){const ids=[...document.querySelectorAll('.dk:checked')].map(x=>+x.value),pct=apply?parseFloat($('#pct').value):0;
+if(!ids.length)return msg('حدّد منتجاً واحداً على الأقل.',1);if(apply&&!(pct>=1&&pct<=90))return msg('أدخل نسبة بين 1 و 90.',1);
+try{await rpc('admin_discount',{p_pw:PW,p_ids:ids,p_pct:pct,p_label:apply?($('#lb').value.trim()||null):null,p_start:apply&&$('#ds').value?new Date($('#ds').value).toISOString():null,p_end:apply&&$('#de').value?new Date($('#de').value).toISOString():null});await load();showD();msg(apply?'تم تطبيق الخصم ✓':'تم إلغاء الخصم ✓')}catch(e){msg(e.message,1)}}
+
+/* الديكور: صور بطاقات الأنواع في واجهة المتجر */
+const DK=[['hoodie','هودي'],['tee','تيشيرت'],['pants','بنطلون'],['jersey','قميص كرة'],['cap','قبعة']];let DC={};
+async function showX(){$('#v').innerHTML='<p class="nt">جارٍ التحميل…</p>';
+try{const r=await fetch(U+'/rest/v1/site_decor?select=key,image',{headers:{apikey:K,Authorization:'Bearer '+K}});if(!r.ok)throw 0;DC={};(await r.json()).forEach(x=>{DC[x.key]=x.image})}catch(e){DC={}}
+$('#v').innerHTML='<p class="nt" style="margin-bottom:12px">صور للديكور فقط: تظهر على بطاقات الأنواع المتحركة في الصفحة الرئيسية للمتجر بدل الرسم الافتراضي. تُصغَّر الصورة تلقائياً.</p><div class="imgs" style="grid-template-columns:repeat(2,1fr)">'+DK.map(([k,l])=>`<div><div class="th">${DC[k]?`<img src="${esc(DC[k])}" alt="">`:'الرسم الافتراضي'}</div><b style="font-weight:400;display:block;margin-top:6px">${l}</b><label class="btn o s" style="width:100%;margin-top:6px">${DC[k]?'تغيير الصورة':'رفع صورة'}<input type="file" accept="image/*" hidden onchange="pickX('${k}',this)"></label>${DC[k]?`<button class="btn o s" style="width:100%;margin-top:6px" onclick="setX('${k}','')">حذف الصورة</button>`:''}</div>`).join('')+'</div>'}
+async function setX(k,img){try{await rpc('admin_save_decor',{p_pw:PW,p_key:k,p_image:img});msg(img?'تم حفظ الصورة ✓':'تم حذف الصورة ✓');showX()}catch(e){msg(e.message,1)}}
+async function pickX(k,inp){const f=inp.files[0];if(!f)return;try{await setX(k,await shrink(f))}catch(e){msg('تعذّرت قراءة الصورة.',1)}}
+
+/* الإعدادات */
+function showC(){$('#v').innerHTML=`<h2>تغيير كلمة السر</h2>${f('np','كلمة السر الجديدة','','password')}<button class="btn" onclick="chg()">تغيير</button><p class="nt" style="margin-top:12px">اختر كلمة سر طويلة يصعب تخمينها، فمن يعرفها يستطيع تعديل أسعار متجرك.</p>`}
+async function chg(){const n=$('#np').value.trim();if(n.length<4)return msg('كلمة السر قصيرة.',1);try{await rpc('admin_change_password',{p_pw:PW,p_new:n});PW=n;try{sessionStorage.setItem('aura-pw',PW)}catch(e){}msg('تم تغيير كلمة السر ✓');$('#np').value=''}catch(e){msg(e.message,1)}}
+boot();
+</script>
+</body>
+</html>
